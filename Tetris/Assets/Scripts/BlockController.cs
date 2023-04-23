@@ -54,15 +54,16 @@ public class BlockController : MonoBehaviour
     }
     bool IsMovable()
     {
-       
+        
         for (int i = 0; i < 4; i++)
         {
             int y = _currentBlock.TilePiecePositions()[i].y;
             y--;
             
-            if (y<GridManager.Instance.MinGridY)
+            if (y<GridManager.Instance.MinGridPoint.y)
             {
                 //Debug.Log("stop");
+                GridManager.Instance.FillTheGrid(_currentBlock.TilePiecePositions());
                 return false;
             }
 
