@@ -25,7 +25,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1083246086}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -109,7 +109,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3118443294275212048}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -1, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -193,7 +193,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3846888052915736419}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -2, z: 0}
+  m_LocalPosition: {x: 0, y: 2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -277,7 +277,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8805501848684682803}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -343,6 +343,30 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 295873451936432878, guid: c3f3ca34b6ba83e458d6bfa4a270c3b3, type: 3}
+      propertyPath: MaxRotationCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 295873451936432878, guid: c3f3ca34b6ba83e458d6bfa4a270c3b3, type: 3}
+      propertyPath: _tilePieces.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 295873451936432878, guid: c3f3ca34b6ba83e458d6bfa4a270c3b3, type: 3}
+      propertyPath: _tilePieces.Array.data[0]
+      value: 
+      objectReference: {fileID: 1083246086}
+    - target: {fileID: 295873451936432878, guid: c3f3ca34b6ba83e458d6bfa4a270c3b3, type: 3}
+      propertyPath: _tilePieces.Array.data[1]
+      value: 
+      objectReference: {fileID: 8805501848684682803}
+    - target: {fileID: 295873451936432878, guid: c3f3ca34b6ba83e458d6bfa4a270c3b3, type: 3}
+      propertyPath: _tilePieces.Array.data[2]
+      value: 
+      objectReference: {fileID: 3118443294275212048}
+    - target: {fileID: 295873451936432878, guid: c3f3ca34b6ba83e458d6bfa4a270c3b3, type: 3}
+      propertyPath: _tilePieces.Array.data[3]
+      value: 
+      objectReference: {fileID: 3846888052915736419}
     - target: {fileID: 5682310911443976078, guid: c3f3ca34b6ba83e458d6bfa4a270c3b3, type: 3}
       propertyPath: m_Name
       value: I_TetrominoBlock
@@ -357,7 +381,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6151829813841515458, guid: c3f3ca34b6ba83e458d6bfa4a270c3b3, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 8
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6151829813841515458, guid: c3f3ca34b6ba83e458d6bfa4a270c3b3, type: 3}
       propertyPath: m_LocalPosition.z

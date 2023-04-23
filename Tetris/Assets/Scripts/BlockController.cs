@@ -3,7 +3,7 @@ using UnityEngine;
 public class BlockController : MonoBehaviour
 {
     [SerializeField] float _downButtonSpeedIncreaseScale = 3f;
-    [SerializeField] Transform _nextBlockTransform;
+    [SerializeField] BlockPiecesHandler _nextBlockTransform;
     [SerializeField] BlockPiecesHandler _currentBlock;
     [SerializeField] float _moveSpeed;
     float _moveTimeCounter;
@@ -15,7 +15,9 @@ public class BlockController : MonoBehaviour
     private void OnEnable()
     {
         _movePeriod = 5 / _moveSpeed;
-        _moveTimeCounter = _movePeriod; 
+        _moveTimeCounter = _movePeriod;
+        _nextBlockTransform = BlockSpawnerManager.Instance.SpawnRandomBlock;
+        NewBlockProcess();
     }
     private void Update()
     {
@@ -31,6 +33,10 @@ public class BlockController : MonoBehaviour
         {
             _moveTimeCounter -= Time.deltaTime * _downButtonSpeedIncreaseScale;
         }
+        if (PlayerInput.Rotate)
+        {
+            RotateBlock();
+        }
         else
         {
             _moveTimeCounter -= Time.deltaTime;
@@ -39,10 +45,67 @@ public class BlockController : MonoBehaviour
         
         if(_moveTimeCounter<0)
         {
-            if(IsMovable())
+            if(IsMovableOnVeritcal())
+            {
                 VerticalMove();
+            }
+            else
+            {
+                GridManager.Instance.FillTheGrid(_currentBlock.TilePieces);
+                NewBlockProcess();
+                GridManager.Instance.IsThereFullRows();
+
+                   
+            }             
             _moveTimeCounter = _movePeriod;
         }
+    }
+    void RotateBlock()
+    {
+        float lastRotatedAngle = _currentBlock.transform.rotation.eulerAngles.z;
+        
+        if (_currentBlock.MaxRotationCount == 0) return;
+        if (_currentBlock.MaxRotationCount == 2)
+        {
+            if(_currentBlock.transform.rotation.eulerAngles.z == 0)
+            {
+                _currentBlock.transform.rotation = Quaternion.Euler(0, 0, _currentBlock.transform.rotation.eulerAngles.z + 90);
+            }
+            else if(_currentBlock.transform.rotation.eulerAngles.z == 90f)
+            {
+                _currentBlock.transform.rotation = Quaternion.Euler(0, 0, _currentBlock.transform.rotation.eulerAngles.z - 90);
+            }
+        }
+        if(_currentBlock.MaxRotationCount == 4)
+        {
+            _currentBlock.transform.rotation = Quaternion.Euler(0, 0, _currentBlock.transform.rotation.eulerAngles.z + 90);
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            int y = Mathf.RoundToInt(_currentBlock.TilePieces[i].transform.position.y);
+            int x = Mathf.RoundToInt(_currentBlock.TilePieces[i].transform.position.x);
+            if (GridManager.Instance.IsGridPositionFull(x, y) || x < GridManager.Instance.MinGridPoint.x || x > GridManager.Instance.MaxGridPoint.x || y<GridManager.Instance.MinGridPoint.y || y>GridManager.Instance.MaxGridPoint.y)
+            {
+               
+                _currentBlock.transform.rotation = Quaternion.Euler(0, 0, lastRotatedAngle);
+                return;
+            }
+        }   
+    }
+    void NewBlockProcess()
+    {
+        if (_currentBlock)
+        {
+            foreach (GameObject tile in _currentBlock.TilePieces)
+            {
+                tile.transform.SetParent(null);
+            }
+            Destroy(_currentBlock.gameObject, 0.2f);
+        }
+           
+        _currentBlock = _nextBlockTransform;
+        _currentBlock.transform.SetParent(null);
+        _nextBlockTransform = BlockSpawnerManager.Instance.SpawnRandomBlock;
     }
     void VerticalMove()
     {
@@ -50,24 +113,62 @@ public class BlockController : MonoBehaviour
     }
     void HorizontalMove(Vector3Int dir)
     {
-        _currentBlock.transform.position += dir;
+        if(IsMovableOnHorizontal(dir))
+            _currentBlock.transform.position += dir;
     }
-    bool IsMovable()
+    bool IsMovableOnVeritcal()
     {
-        
+       
         for (int i = 0; i < 4; i++)
         {
-            int y = _currentBlock.TilePiecePositions()[i].y;
+            int x = Mathf.RoundToInt(_currentBlock.TilePieces[i].transform.position.x);
+            int y = Mathf.RoundToInt(_currentBlock.TilePieces[i].transform.position.y);
             y--;
             
             if (y<GridManager.Instance.MinGridPoint.y)
             {
-                //Debug.Log("stop");
-                GridManager.Instance.FillTheGrid(_currentBlock.TilePiecePositions());
+                //Debug.Log("stop");          
                 return false;
             }
-
+            if(GridManager.Instance.IsGridPositionFull(x,y))
+            {
+                return false;
+            }
         }
         return true;
+    }
+    bool IsMovableOnHorizontal(Vector3Int dir)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            int y = Mathf.RoundToInt(_currentBlock.TilePieces[i].transform.position.y);
+            int x = Mathf.RoundToInt(_currentBlock.TilePieces[i].transform.position.x);
+            if (dir == _rightVector)
+            {
+                x++;
+                if(x > GridManager.Instance.MaxGridPoint.x)
+                {
+                    return false;
+                }
+                if (GridManager.Instance.IsGridPositionFull(x, y))
+                {
+                    return false;
+                }
+            }
+            else if (dir == _leftVector)
+            {
+                x--;
+                if (x < GridManager.Instance.MinGridPoint.x)
+                {
+                    return false;
+                }
+                if (GridManager.Instance.IsGridPositionFull(x, y))
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+
     }
 }
