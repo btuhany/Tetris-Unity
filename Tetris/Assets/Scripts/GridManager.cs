@@ -1,20 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
 public class GridManager : MonoBehaviour
 {
-    [SerializeField] int _gridWidth = 10, _gridHeight = 20;
-    [SerializeField] float _offset = 0.45f;
+    int _gridWidth = 10, _gridHeight = 20;
+
     [SerializeField] GameObject _debugUnfilledPrefab;
     [SerializeField] GameObject _debugFilledPrefab;
     [SerializeField] Transform _tilesParent;
     [SerializeField] Transform _debugTilesParent;
+    
     SpriteRenderer _gridSprite;
-    SpriteRenderer _borderSprite;
-    SpriteRenderer[] _sprites;
     GameObject[,] _grid;
     GameObject[,] _debugGrid;
 
@@ -24,14 +24,33 @@ public class GridManager : MonoBehaviour
     public Vector2Int MaxGridPoint;
 
     public bool ShowDebugPoints;
+
+
+    public Transform TilesParent { get => _tilesParent; }
+    public int GridWidth { get => _gridWidth; set => _gridWidth = value; }
+    public int GridHeight { get => _gridHeight; set => _gridHeight = value; }
+
     private void Awake()
     {
         Instance = this;
-        _sprites = GetComponentsInChildren<SpriteRenderer>();
-        _gridSprite = _sprites[0];
-        _borderSprite = _sprites[1];
+        _gridSprite = GetComponent<SpriteRenderer>();
+
     }
     private void OnEnable()
+    {
+        GameManager.Instance.OnGameOver += HandleOnGameOver;
+    }
+
+    private void HandleOnGameOver()
+    {
+        for (int i = 0; i < TilesParent.transform.childCount; i++)
+        {
+            Destroy(TilesParent.GetChild(i).gameObject);
+      
+        }
+    }
+
+    public void SetupParameters()
     {
         _grid = new GameObject[_gridWidth, _gridHeight];
         _debugGrid = new GameObject[_gridWidth, _gridHeight];
@@ -39,18 +58,35 @@ public class GridManager : MonoBehaviour
         MaxGridPoint = new Vector2Int(((_gridWidth - 2) / 2) + 1, _gridHeight - 1);
         transform.position = new Vector3(transform.position.x, _gridHeight / 2 - 0.5f, transform.position.z);
         _gridSprite.size = new Vector2(_gridWidth, _gridHeight);
-        _borderSprite.size = new Vector2(_gridWidth + _offset, _gridHeight + _offset);
+
         if (ShowDebugPoints)
             UpdateDebug();
     }
     public void AddBlockTilesToGrid(GameObject[] tilePositions)
     {
-        CheckClearFilledRows(FillTheGrid(tilePositions));
+        CheckAndClearFilledRows(FillTheGrid(tilePositions));
         if (ShowDebugPoints)
             UpdateDebug();
     }
+    public void ClearTheGrid()
+    {
+
+        for (int i = 0; i < _gridWidth; i++)
+        {
+            for (int j = 0; j < _gridHeight; j++)
+            {
+                if (_grid[i,j])
+                {
+                    Destroy(_grid[i, j].gameObject);
+                    _grid[i, j] = null;
+                    _debugGrid[i, j] = null;
+                }
+            }
+        }
+    }
     private List<int> FillTheGrid(GameObject[] tilePositions)
     {
+        bool isOutsideTheGrid = false;
         List<int> newTilesRows = new List<int>();
         for (int i = 0; i < 4; i++)
         {
@@ -59,22 +95,35 @@ public class GridManager : MonoBehaviour
 
             if (tilePosXRelativeToGrid < _gridWidth && tilePosYRelativeToGrid < _gridHeight)
             {
-                _grid[tilePosXRelativeToGrid, tilePosYRelativeToGrid] = tilePositions[i];
-                if (!newTilesRows.Contains(tilePosYRelativeToGrid))
-                    newTilesRows.Add(tilePosYRelativeToGrid);
+                if (tilePositions[i])   // --> prevents error
+                {
+                    _grid[tilePosXRelativeToGrid, tilePosYRelativeToGrid] = tilePositions[i];
+                    if (!newTilesRows.Contains(tilePosYRelativeToGrid))
+                        newTilesRows.Add(tilePosYRelativeToGrid);
+
+                }
+                
             }
             else
             {
-                Debug.Log("finish");
-                Time.timeScale = 0f;
-                //GameManager Stop
+                isOutsideTheGrid = true;
+                if (tilePositions[i])
+                {
+                    Destroy(tilePositions[i].gameObject);
+                }
             }
+        }
+        if(isOutsideTheGrid)
+        {
+            GameManager.Instance.GameOver();
         }
         return newTilesRows;
     }
-    private void CheckClearFilledRows(List<int> newTileRows)
+    private void CheckAndClearFilledRows(List<int> newTileRows)
     {
+        
         List<int> rowsToClear = new List<int>();
+        if (newTileRows.Count == 0) return; 
         for (int i = newTileRows.Min(); i < newTileRows.Max()+1; i++)
         {
             int filledCellCounter = 0;
@@ -98,7 +147,7 @@ public class GridManager : MonoBehaviour
         {
             ClearFullRow(rowsToClear);
             MoveRowsDown(rowsToClear);
-
+            
         }
     }
 
@@ -127,7 +176,9 @@ public class GridManager : MonoBehaviour
             {
                 Destroy(_grid[i, rowsToClear[x]].gameObject);  
                 _grid[i, rowsToClear[x]] = null;
+                
             }
+            GameManager.Instance.IncreaseScore();
         }
 
     }

@@ -1,37 +1,66 @@
+using System;
 using UnityEngine;
 
 public class BlockController : MonoBehaviour
 {
     [SerializeField] float _downButtonSpeedIncreaseScale = 3f;
-    [SerializeField] BlockPiecesHandler _nextBlockTransform;
+    [SerializeField] BlockPiecesHandler _nextBlock;
     [SerializeField] BlockPiecesHandler _currentBlock;
-    [SerializeField] float _moveSpeed;
-    float _moveTimeCounter;
-    float _movePeriod;
-
+    [SerializeField] float _verticalMoveSpeed;
+    [SerializeField] float _horizontalMoveSpeed;
+    [SerializeField] RectTransform _nextBlockParent;
+    [SerializeField] Transform _spawnPoint;
+    float _verticalMoveTimeCounter;
+    float _verticalMovePeriod;
+    float _horizontalMoveTimeCounter;
+    float _horizontalMovePeriod;
     Vector3Int _downVector = Vector3Int.down;
     Vector3Int _rightVector = Vector3Int.right;
     Vector3Int _leftVector = Vector3Int.left;
+
+    public float VerticalMoveSpeed { get => _verticalMoveSpeed; set => _verticalMoveSpeed = value; }
+    public float VerticalMovePeriod { get => _verticalMovePeriod; set => _verticalMovePeriod = value; }
+
     private void OnEnable()
     {
-        _movePeriod = 5 / _moveSpeed;
-        _moveTimeCounter = _movePeriod;
-        _nextBlockTransform = BlockSpawnerManager.Instance.SpawnRandomBlock;
+        GameManager.Instance.OnGameOver += HandleOnGamerOver;
+        _horizontalMovePeriod = 5 / _horizontalMoveSpeed;
+        _verticalMovePeriod = 5 / _verticalMoveSpeed;
+        _verticalMoveTimeCounter = _verticalMovePeriod;
+        if(!_nextBlock)
+            _nextBlock = BlockSpawnerManager.Instance.RandomNewBlock();
         NewBlockProcess();
     }
+
+
+
     private void Update()
     {
         if(PlayerInput.Right)
         {
-            HorizontalMove(_rightVector);
+            _horizontalMoveTimeCounter -= Time.deltaTime;
+            if(_horizontalMoveTimeCounter<=0f)
+            {
+                _horizontalMoveTimeCounter = _horizontalMovePeriod;
+                HorizontalMove(_rightVector);
+            }
         }
         if(PlayerInput.Left)
         {
-            HorizontalMove(_leftVector);
+            _horizontalMoveTimeCounter -= Time.deltaTime;
+            if (_horizontalMoveTimeCounter <= 0f)
+            {
+                _horizontalMoveTimeCounter = _horizontalMovePeriod;
+                HorizontalMove(_leftVector);
+            }
         }
+        if(PlayerInput.LeftRelease || PlayerInput.RightRelease) 
+        {
+            _horizontalMoveTimeCounter = 0f;
+        }  
         if(PlayerInput.Down)
         {
-            _moveTimeCounter -= Time.deltaTime * _downButtonSpeedIncreaseScale;
+            _verticalMoveTimeCounter -= Time.deltaTime * _downButtonSpeedIncreaseScale;
         }
         if (PlayerInput.Rotate)
         {
@@ -39,22 +68,23 @@ public class BlockController : MonoBehaviour
         }
         else
         {
-            _moveTimeCounter -= Time.deltaTime;
+            _verticalMoveTimeCounter -= Time.deltaTime;
         }
 
         
-        if(_moveTimeCounter<0)
+        if(_verticalMoveTimeCounter<0)
         {
             if(IsMovableOnVeritcal())
             {
                 VerticalMove();
             }
-            else
+            else if(!GameManager.Instance.IsGameStopped)
             {
-                GridManager.Instance.AddBlockTilesToGrid(_currentBlock.TilePieces);
+                if(_currentBlock && _currentBlock.TilePieces.Length>0)
+                    GridManager.Instance.AddBlockTilesToGrid(_currentBlock.TilePieces);
                 NewBlockProcess();
             }             
-            _moveTimeCounter = _movePeriod;
+            _verticalMoveTimeCounter = _verticalMovePeriod;
         }
     }
     void RotateBlock()
@@ -95,14 +125,16 @@ public class BlockController : MonoBehaviour
         {
             foreach (GameObject tile in _currentBlock.TilePieces)
             {
-                tile.transform.SetParent(null);
+                tile.transform.SetParent(GridManager.Instance.TilesParent);
             }
             Destroy(_currentBlock.gameObject, 0.2f);
         }
-           
-        _currentBlock = _nextBlockTransform;
+        
+        _currentBlock = _nextBlock;
         _currentBlock.transform.SetParent(null);
-        _nextBlockTransform = BlockSpawnerManager.Instance.SpawnRandomBlock;
+        _currentBlock.transform.position = _spawnPoint.position;
+        _currentBlock.transform.localScale = Vector3.one;
+        _nextBlock = BlockSpawnerManager.Instance.RandomNewBlock();
     }
     void VerticalMove()
     {
@@ -115,7 +147,6 @@ public class BlockController : MonoBehaviour
     }
     bool IsMovableOnVeritcal()
     {
-       
         for (int i = 0; i < 4; i++)
         {
             int x = Mathf.RoundToInt(_currentBlock.TilePieces[i].transform.position.x);
@@ -167,5 +198,12 @@ public class BlockController : MonoBehaviour
         }
         return true;
 
+    }
+    private void HandleOnGamerOver()
+    {
+        if (_currentBlock)
+            Destroy(_currentBlock.gameObject);
+        if (_nextBlock)
+            Destroy(_nextBlock.gameObject);
     }
 }
