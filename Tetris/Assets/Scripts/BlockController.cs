@@ -51,11 +51,8 @@ public class BlockController : MonoBehaviour
             }
             else
             {
-                GridManager.Instance.FillTheGrid(_currentBlock.TilePieces);
+                GridManager.Instance.AddBlockTilesToGrid(_currentBlock.TilePieces);
                 NewBlockProcess();
-                GridManager.Instance.IsThereFullRows();
-
-                   
             }             
             _moveTimeCounter = _movePeriod;
         }

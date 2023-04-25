@@ -311,7 +311,7 @@ MonoBehaviour:
   _debugTilesParent: {fileID: 408523664}
   MinGridPoint: {x: 0, y: 0}
   MaxGridPoint: {x: 0, y: 0}
-  ShowDebugPoints: 0
+  ShowDebugPoints: 1
 --- !u!1 &286707350
 GameObject:
   m_ObjectHideFlags: 0
@@ -342,13 +342,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _tetrominoBlockPrefabs:
-  - {fileID: 2252833009008719989, guid: b99f06f2291fe094ab77871709f51a0b, type: 3}
   - {fileID: 4009238709060362201, guid: 02e2ab4ad8ab965438f4de64c12be57d, type: 3}
   - {fileID: 8638337022784546541, guid: 6335ebaadb39dba47af7690305adbb18, type: 3}
   - {fileID: 8997824381376791267, guid: 49f7cd0bb7a901c4886c6db86fdf3d4b, type: 3}
   - {fileID: 661416718220461484, guid: d5323dcb0b150bf45a5ed5a4e09728f7, type: 3}
   - {fileID: 2984061016583861737, guid: aca4dd8d180aa464eb9f914521d5c151, type: 3}
   - {fileID: 8514516133983208433, guid: 0b7f9fad852b42a479bfcbd136c5a8f7, type: 3}
+  - {fileID: 2252833009008719989, guid: b99f06f2291fe094ab77871709f51a0b, type: 3}
   _spawnPoint: {fileID: 35771694}
 --- !u!4 &286707352
 Transform:
@@ -450,7 +450,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 12
+  orthographic size: 15.535177
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -474,7 +474,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 10, z: -10}
+  m_LocalPosition: {x: 0.35, y: 14.26, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

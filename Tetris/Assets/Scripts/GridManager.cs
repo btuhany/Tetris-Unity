@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class GridManager : MonoBehaviour
@@ -34,88 +38,138 @@ public class GridManager : MonoBehaviour
         MinGridPoint = new Vector2Int(-(_gridWidth - 2) / 2, 0);
         MaxGridPoint = new Vector2Int(((_gridWidth - 2) / 2) + 1, _gridHeight - 1);
         transform.position = new Vector3(transform.position.x, _gridHeight / 2 - 0.5f, transform.position.z);
-        _gridSprite.size = new Vector2(_gridWidth,_gridHeight);
+        _gridSprite.size = new Vector2(_gridWidth, _gridHeight);
         _borderSprite.size = new Vector2(_gridWidth + _offset, _gridHeight + _offset);
         if (ShowDebugPoints)
             UpdateDebug();
     }
-    public void FillTheGrid(GameObject[] filledTilesPos)
+    public void AddBlockTilesToGrid(GameObject[] tilePositions)
     {
-        for (int i = 0; i < 4; i++)
-        {
-            _grid[Mathf.RoundToInt(filledTilesPos[i].transform.position.x) - MinGridPoint.x, Mathf.RoundToInt(filledTilesPos[i].transform.position.y) - MinGridPoint.y] = filledTilesPos[i];
-            
-            
-        }
-        
+        CheckClearFilledRows(FillTheGrid(tilePositions));
         if (ShowDebugPoints)
             UpdateDebug();
     }
-    public void IsThereFullRows()
+    private List<int> FillTheGrid(GameObject[] tilePositions)
     {
-        int counter=0;
-        for (int i = 0; i < _gridHeight; i++)
+        List<int> newTilesRows = new List<int>();
+        for (int i = 0; i < 4; i++)
         {
-            counter = 0;
+            int tilePosXRelativeToGrid = Mathf.RoundToInt(tilePositions[i].transform.position.x) - MinGridPoint.x;
+            int tilePosYRelativeToGrid = Mathf.RoundToInt(tilePositions[i].transform.position.y) - MinGridPoint.y;
+
+            if (tilePosXRelativeToGrid < _gridWidth && tilePosYRelativeToGrid < _gridHeight)
+            {
+                _grid[tilePosXRelativeToGrid, tilePosYRelativeToGrid] = tilePositions[i];
+                if (!newTilesRows.Contains(tilePosYRelativeToGrid))
+                    newTilesRows.Add(tilePosYRelativeToGrid);
+            }
+            else
+            {
+                Debug.Log("finish");
+                Time.timeScale = 0f;
+                //GameManager Stop
+            }
+        }
+        return newTilesRows;
+    }
+    private void CheckClearFilledRows(List<int> newTileRows)
+    {
+        List<int> rowsToClear = new List<int>();
+        for (int i = newTileRows.Min(); i < newTileRows.Max()+1; i++)
+        {
+            int filledCellCounter = 0;
             for (int j = 0; j < _gridWidth; j++)
             {
                 if (_grid[j, i])
                 {
-                    counter++;
+                    filledCellCounter++;
                     //Debug.Log("----------------");
                     //Debug.Log("row: " + i);
                     //Debug.Log(counter);
-                    if (counter == _gridWidth)
+                    if (filledCellCounter == _gridWidth)
                     {
                         //Debug.Log("finishCounter: " + counter);
-                        ClearFullRow(i);
+                        rowsToClear.Add(i);
                     }
                 }
-
             }
         }
-    }
-    public void ClearFullRow(int column)
-    {
-        for (int i = 0; i < _gridWidth; i++)
+        if (rowsToClear.Count > 0)
         {
-        //    GameObject deleteObj = _grid[i, column];
-            _grid[i, column] = _grid[i+1,column];
-            Destroy(_grid[i, column]);
-
-           
+            ClearFullRow(rowsToClear);
+            MoveRowsDown(rowsToClear);
 
         }
-        
+    }
+
+    private void MoveRowsDown(List<int> rowsToClear)
+    {
+        for (int i = rowsToClear.Max() + 1; i < _gridHeight; i++)
+        {
+            for (int j = 0; j < _gridWidth; j++)
+            {
+                if (_grid[j, i])  //if grid cell contains tile
+                {
+                    _grid[j, i].gameObject.transform.position += Vector3.down * rowsToClear.Count;
+                    _grid[j, i - rowsToClear.Count] = _grid[j, i];
+                    _grid[j, i] = null;
+                }
+            }
+
+        }
+    }
+
+    public void ClearFullRow(List<int> rowsToClear)
+    {
+        for (int x = 0; x < rowsToClear.Count; x++)
+        {
+            for (int i = 0; i < _gridWidth; i++)
+            {
+                Destroy(_grid[i, rowsToClear[x]].gameObject);  
+                _grid[i, rowsToClear[x]] = null;
+            }
+        }
+
     }
     public bool IsGridPositionFull(int x, int y)
     {
         y = Mathf.Clamp(y, MinGridPoint.y, MaxGridPoint.y);
         x = Mathf.Clamp(x, MinGridPoint.x, MaxGridPoint.x);
-        if(_grid[x - MinGridPoint.x, y - MinGridPoint.y])
+        if (_grid[x - MinGridPoint.x, y - MinGridPoint.y])
         {
             return true;
         }
         return false;
     }
-    private void UpdateDebug()
+    public void UpdateDebug()
     {
         for (int i = MinGridPoint.x; i <= MaxGridPoint.x; i++)
         {
             for (int j = MinGridPoint.y; j <= MaxGridPoint.y; j++)
             {
-                if (_grid[i - MinGridPoint.x, j - MinGridPoint.y] && _debugGrid[i - MinGridPoint.x, j - MinGridPoint.y])
+                if (_debugGrid[i - MinGridPoint.x, j - MinGridPoint.y])
                 {
-                    Destroy(_debugGrid[i - MinGridPoint.x, j - MinGridPoint.y]);           //ObjectPooling
-                    _debugGrid[i - MinGridPoint.x, j - MinGridPoint.y] = Instantiate(_debugFilledPrefab, new Vector3(i, j, 0), this.transform.rotation);
-                    _debugGrid[i - MinGridPoint.x, j - MinGridPoint.y].transform.SetParent(_debugTilesParent);
+                    if (_grid[i - MinGridPoint.x, j - MinGridPoint.y])
+                    {
+
+                        Destroy(_debugGrid[i - MinGridPoint.x, j - MinGridPoint.y]);           //ObjectPooling
+                        _debugGrid[i - MinGridPoint.x, j - MinGridPoint.y] = Instantiate(_debugFilledPrefab, new Vector3(i, j, 0), this.transform.rotation);
+                        _debugGrid[i - MinGridPoint.x, j - MinGridPoint.y].transform.SetParent(_debugTilesParent);
+                    }
+                    else
+                    {
+
+                        Destroy(_debugGrid[i - MinGridPoint.x, j - MinGridPoint.y]);
+                        _debugGrid[i - MinGridPoint.x, j - MinGridPoint.y] = Instantiate(_debugUnfilledPrefab, new Vector3(i, j, 0), this.transform.rotation);
+                        _debugGrid[i - MinGridPoint.x, j - MinGridPoint.y].transform.SetParent(_debugTilesParent);
+                    }
                 }
-                else if(!_debugGrid[i - MinGridPoint.x, j - MinGridPoint.y])
+                else
                 {
-                    
+
                     _debugGrid[i - MinGridPoint.x, j - MinGridPoint.y] = Instantiate(_debugUnfilledPrefab, new Vector3(i, j, 0), this.transform.rotation);
                     _debugGrid[i - MinGridPoint.x, j - MinGridPoint.y].transform.SetParent(_debugTilesParent);
-                    
+
                 }
 
             }
