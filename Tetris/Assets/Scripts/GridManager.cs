@@ -172,7 +172,7 @@ public class GridManager : MonoBehaviour
                 }
 
             }
-            GameManager.Instance.IncreaseScore();
+            GameManager.Instance.IncreaseScore();  //?
         }
     }
     //private void MoveRowsDown(List<int> rowsToClear)
