@@ -145,43 +145,71 @@ public class GridManager : MonoBehaviour
         }
         if (rowsToClear.Count > 0)
         {
-            ClearFullRow(rowsToClear);
-            MoveRowsDown(rowsToClear);
+            ClearAndMove(rowsToClear);
+       
             
         }
     }
-
-    private void MoveRowsDown(List<int> rowsToClear)
+    private void ClearAndMove(List<int> rowsToClear)
     {
-        for (int i = rowsToClear.Max() + 1; i < _gridHeight; i++)
-        {
-            for (int j = 0; j < _gridWidth; j++)
-            {
-                if (_grid[j, i])  //if grid cell contains tile
-                {
-                    _grid[j, i].gameObject.transform.position += Vector3.down * rowsToClear.Count;
-                    _grid[j, i - rowsToClear.Count] = _grid[j, i];
-                    _grid[j, i] = null;
-                }
-            }
-
-        }
-    }
-
-    public void ClearFullRow(List<int> rowsToClear)
-    {
-        for (int x = 0; x < rowsToClear.Count; x++)
+        
+        for (int x = rowsToClear.Count - 1; x >= 0; x--)
         {
             for (int i = 0; i < _gridWidth; i++)
             {
-                Destroy(_grid[i, rowsToClear[x]].gameObject);  
+                Destroy(_grid[i, rowsToClear[x]].gameObject);
                 _grid[i, rowsToClear[x]] = null;
-                
+                Debug.Log("Deneme");
+                for (int j = rowsToClear[x] + 1; j < _gridWidth; j++)
+                {
+                    if (_grid[i, j])
+                    {
+                        _grid[i, j].gameObject.transform.position += Vector3.down;
+                        _grid[i, j - 1] = _grid[i, j];
+                        _grid[i, j] = null;
+                    }
+
+                }
+
             }
             GameManager.Instance.IncreaseScore();
         }
-
     }
+    //private void MoveRowsDown(List<int> rowsToClear)
+    //{
+       
+        
+    //    for (int i = rowsToClear.Max() + 1; i < _gridHeight; i++)
+    //    {
+    //        for (int j = 0; j < _gridWidth; j++)
+    //        {
+    //            if (_grid[j, i])  //if grid cell contains tile
+    //            {
+    //                _grid[j, i].gameObject.transform.position += Vector3.down * rowsToClear.Count;
+    //                _grid[j, i - rowsToClear.Count] = _grid[j, i];
+    //                _grid[j, i] = null;
+    //            }
+    //        }
+    //    }
+        
+      
+
+    //}
+
+    //public void ClearFullRow(List<int> rowsToClear)
+    //{
+    //    for (int x = 0; x < rowsToClear.Count; x++)
+    //    {
+    //        for (int i = 0; i < _gridWidth; i++)
+    //        {
+    //            Destroy(_grid[i, rowsToClear[x]].gameObject);  
+    //            _grid[i, rowsToClear[x]] = null;
+                
+    //        }
+    //        GameManager.Instance.IncreaseScore();
+    //    }
+
+    //}
     public bool IsGridPositionFull(int x, int y)
     {
         y = Mathf.Clamp(y, MinGridPoint.y, MaxGridPoint.y);
