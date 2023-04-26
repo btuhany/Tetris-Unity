@@ -16,8 +16,10 @@ public class GameManager : MonoBehaviour
     public event System.Action<int> OnScoreChanged;
     public event System.Action OnGameOver;
     public static GameManager Instance;
+    float _initalVerticalMoveSpeed;
     private void Awake()
     {
+        _initalVerticalMoveSpeed = _blockController.VerticalMoveSpeed;
         Instance = this;
     }
     public void IncreaseScore()
@@ -75,6 +77,10 @@ public class GameManager : MonoBehaviour
     }
     private void StopTheGame()
     {
+        _score = 0;
+        OnScoreChanged?.Invoke(_score);
+        _blockController.VerticalMoveSpeed = _initalVerticalMoveSpeed;
+        _blockController.VerticalMovePeriod = 5 / _blockController.VerticalMoveSpeed;
         _inputPanel.SetActive(true);
         _inGamePanel.SetActive(false);
         _blockController.gameObject.SetActive(false);

@@ -159,8 +159,8 @@ public class GridManager : MonoBehaviour
             {
                 Destroy(_grid[i, rowsToClear[x]].gameObject);
                 _grid[i, rowsToClear[x]] = null;
-                Debug.Log("Deneme");
-                for (int j = rowsToClear[x] + 1; j < _gridWidth; j++)
+                
+                for (int j = rowsToClear[x] + 1; j < _gridHeight; j++)
                 {
                     if (_grid[i, j])
                     {
